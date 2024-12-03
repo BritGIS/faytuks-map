@@ -8,15 +8,43 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+        /* Full-screen map styling */
         #map {
-            height: 100vh;
+            height: calc(100vh - 60px);
+            /* Leave space for the banner */
             width: 100%;
             margin: 0;
         }
 
+        /* Body styling */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Banner styling */
+        #banner {
+            height: 60px;
+            width: 100%;
+            background-color: #090b18;
+            /* Dark blue background */
+            color: white;
+            /* White text */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #banner h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        /* Transparency slider container styling */
         #transparency-slider-container {
             position: absolute;
-            top: 10px;
+            top: 70px;
             left: 10px;
             z-index: 1000;
             background: white;
@@ -24,19 +52,24 @@
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-
-        body {
-            margin: 0;
-        }
     </style>
 </head>
 
 <body>
+    <!-- Banner Section -->
+    <div id="banner">
+        <h1>OSINT Interactive Map</h1>
+    </div>
+
+    <!-- Map Section -->
     <div id="map"></div>
+
+    <!-- Transparency Slider -->
     <div id="transparency-slider-container">
         <label for="transparency-slider">Basemap Transparency</label><br />
         <input type="range" id="transparency-slider" min="0" max="100" value="100" />
     </div>
+
     <script>
         // Initialize the map and center it on Syria
         const map = L.map('map', {
@@ -83,11 +116,19 @@
         // Add layer control to the map
         L.control.layers(basemaps).addTo(map);
 
+        // Add custom icon for markers
+        const customIcon = L.icon({
+            iconUrl: 'icon.jpg', // Path to your custom icon
+            iconSize: [32, 32], // Adjust size as needed
+            iconAnchor: [16, 32], // Anchor point (bottom center)
+            popupAnchor: [0, -32] // Popup appears above the icon
+        });
+
         // Add an event listener to let users add markers
         map.on('click', function (e) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
-            L.marker([lat, lng]).addTo(map)
+            L.marker([lat, lng], { icon: customIcon }).addTo(map)
                 .bindPopup(`User added marker at<br>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`)
                 .openPopup();
         });
