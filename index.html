@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* Full-screen map styling */
         #map {
             height: calc(100vh - 60px);
             /* Leave space for the banner */
@@ -16,13 +15,11 @@
             margin: 0;
         }
 
-        /* Body styling */
         body {
             margin: 0;
             font-family: Arial, sans-serif;
         }
 
-        /* Banner styling */
         #banner {
             height: 60px;
             width: 100%;
@@ -41,26 +38,12 @@
 
         #banner img {
             height: 40px;
-            /* Adjust icon height */
             width: 40px;
-            /* Adjust icon width */
         }
 
         #banner h1 {
             font-size: 1.5rem;
             margin: 0;
-        }
-
-        /* Transparency slider container styling */
-        #transparency-slider-container {
-            position: absolute;
-            top: 70px;
-            left: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -75,12 +58,6 @@
     <!-- Map Section -->
     <div id="map"></div>
 
-    <!-- Transparency Slider -->
-    <div id="transparency-slider-container">
-        <label for="transparency-slider">Basemap Transparency</label><br />
-        <input type="range" id="transparency-slider" min="0" max="100" value="100" />
-    </div>
-
     <script>
         // Initialize the map and center it on Syria
         const map = L.map('map', {
@@ -92,64 +69,44 @@
         const osmBasemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19,
-            opacity: 1.0 // Default opacity for transparency slider
-        });
-
-        const satelliteBasemap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>',
-            maxZoom: 18,
             opacity: 1.0
         });
 
-        const hybridBasemap = L.layerGroup([
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>',
-                maxZoom: 18,
-                opacity: 1.0
-            }),
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Labels &copy; <a href="https://www.esri.com/">Esri</a>',
-                maxZoom: 18,
-                opacity: 1.0
-            })
-        ]);
-
-        // Add the default basemap (OSM)
         osmBasemap.addTo(map);
 
-        // Basemaps object for layer control
-        const basemaps = {
-            "OpenStreetMap": osmBasemap,
-            "Satellite": satelliteBasemap,
-            "Hybrid Satellite": hybridBasemap
-        };
+        // Overlay object for custom data
+        const overlays = {};
 
-        // Add layer control to the map
-        L.control.layers(basemaps).addTo(map);
-
-        // Add an event listener to let users add markers
-        map.on('click', function (e) {
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            L.marker([lat, lng]).addTo(map)
-                .bindPopup(`User added marker at<br>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`)
-                .openPopup();
-        });
-
-        // Transparency slider functionality
-        const slider = document.getElementById('transparency-slider');
-        slider.addEventListener('input', function () {
-            const opacity = slider.value / 100; // Convert slider value to opacity (0.0 - 1.0)
-            for (const layer in basemaps) {
-                if (map.hasLayer(basemaps[layer])) {
-                    if (basemaps[layer] instanceof L.LayerGroup) {
-                        basemaps[layer].eachLayer(l => l.setOpacity(opacity));
-                    } else {
-                        basemaps[layer].setOpacity(opacity);
+        // Load GeoJSON data from external file
+        fetch('Syria_Control_main.geojson') // Reference to your file
+            .then(response => response.json())
+            .then(data => {
+                const customLayer = L.geoJSON(data, {
+                    onEachFeature: function (feature, layer) {
+                        // Add popups to each feature
+                        const name = feature.properties.name || "Unknown";
+                        const description = feature.properties.description || "No description available.";
+                        layer.bindPopup(`<strong>${name}</strong><br>${description}`);
+                    },
+                    pointToLayer: function (feature, latlng) {
+                        // Customize the marker for GeoJSON points
+                        return L.marker(latlng, {
+                            icon: L.icon({
+                                iconUrl: 'icon.jpg', // Use your custom icon
+                                iconSize: [25, 25],
+                                iconAnchor: [12, 25],
+                                popupAnchor: [0, -25]
+                            })
+                        });
                     }
-                }
-            }
-        });
+                });
+
+                // Add custom layer to overlays and map control
+                overlays["Custom Data"] = customLayer;
+                customLayer.addTo(map); // Add by default (optional)
+                L.control.layers({ "OpenStreetMap": osmBasemap }, overlays).addTo(map);
+            })
+            .catch(error => console.error('Error loading GeoJSON:', error));
     </script>
 </body>
 
