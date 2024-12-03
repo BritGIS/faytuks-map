@@ -32,8 +32,18 @@
             /* White text */
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             position: relative;
+            padding-left: 10px;
+            gap: 10px;
+            /* Space between icon and text */
+        }
+
+        #banner img {
+            height: 40px;
+            /* Adjust icon height */
+            width: 40px;
+            /* Adjust icon width */
         }
 
         #banner h1 {
@@ -58,6 +68,7 @@
 <body>
     <!-- Banner Section -->
     <div id="banner">
+        <img src="icon.jpg" alt="Banner Icon" />
         <h1>FAYTUKS Interactive Map</h1>
     </div>
 
@@ -116,19 +127,11 @@
         // Add layer control to the map
         L.control.layers(basemaps).addTo(map);
 
-        // Add custom icon for markers
-        const customIcon = L.icon({
-            iconUrl: 'icon.jpg', // Path to your custom icon
-            iconSize: [32, 32], // Adjust size as needed
-            iconAnchor: [16, 32], // Anchor point (bottom center)
-            popupAnchor: [0, -32] // Popup appears above the icon
-        });
-
         // Add an event listener to let users add markers
         map.on('click', function (e) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
-            L.marker([lat, lng], { icon: customIcon }).addTo(map)
+            L.marker([lat, lng]).addTo(map)
                 .bindPopup(`User added marker at<br>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`)
                 .openPopup();
         });
