@@ -20,11 +20,46 @@
         // Initialize the map and center it on Syria
         const map = L.map('map').setView([34.802075, 38.996815], 6);
 
-        // Add Stamen "Toner Lite" tiles with English labels
-        L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {
+        // Define basemap layers
+        const osmBasemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        });
+
+        const tonerLiteBasemap = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://stamen.com/">Stamen Design</a>, <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             maxZoom: 20
-        }).addTo(map);
+        });
+
+        const satelliteBasemap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>',
+            maxZoom: 18
+        });
+
+        const hybridBasemap = L.layerGroup([
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>',
+                maxZoom: 18
+            }),
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Labels &copy; <a href="https://www.esri.com/">Esri</a>',
+                maxZoom: 18
+            })
+        ]);
+
+        // Add the default basemap (OSM)
+        osmBasemap.addTo(map);
+
+        // Basemaps object for layer control
+        const basemaps = {
+            "OpenStreetMap": osmBasemap,
+            "Toner Lite": tonerLiteBasemap,
+            "Satellite": satelliteBasemap,
+            "Hybrid Satellite": hybridBasemap
+        };
+
+        // Add layer control to the map
+        L.control.layers(basemaps).addTo(map);
 
         // Add an event listener to let users add markers
         map.on('click', function (e) {
