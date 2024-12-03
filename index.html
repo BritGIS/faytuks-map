@@ -14,6 +14,17 @@
             margin: 0;
         }
 
+        #transparency-slider-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
         body {
             margin: 0;
         }
@@ -22,38 +33,40 @@
 
 <body>
     <div id="map"></div>
+    <div id="transparency-slider-container">
+        <label for="transparency-slider">Basemap Transparency</label><br />
+        <input type="range" id="transparency-slider" min="0" max="100" value="100" />
+    </div>
     <script>
         // Initialize the map and center it on Syria
         const map = L.map('map', {
             center: [34.802075, 38.996815], // Coordinates for Syria
             zoom: 6, // Zoom level
-            layers: [] // No default layers yet
         });
 
         // Define basemap layers
         const osmBasemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        });
-
-        const tonerLiteBasemap = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://stamen.com/">Stamen Design</a>, <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            maxZoom: 20
+            maxZoom: 19,
+            opacity: 1.0 // Default opacity for transparency slider
         });
 
         const satelliteBasemap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>',
-            maxZoom: 18
+            maxZoom: 18,
+            opacity: 1.0
         });
 
         const hybridBasemap = L.layerGroup([
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>',
-                maxZoom: 18
+                maxZoom: 18,
+                opacity: 1.0
             }),
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Labels &copy; <a href="https://www.esri.com/">Esri</a>',
-                maxZoom: 18
+                maxZoom: 18,
+                opacity: 1.0
             })
         ]);
 
@@ -63,7 +76,6 @@
         // Basemaps object for layer control
         const basemaps = {
             "OpenStreetMap": osmBasemap,
-            "Toner Lite": tonerLiteBasemap,
             "Satellite": satelliteBasemap,
             "Hybrid Satellite": hybridBasemap
         };
@@ -78,6 +90,21 @@
             L.marker([lat, lng]).addTo(map)
                 .bindPopup(`User added marker at<br>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`)
                 .openPopup();
+        });
+
+        // Transparency slider functionality
+        const slider = document.getElementById('transparency-slider');
+        slider.addEventListener('input', function () {
+            const opacity = slider.value / 100; // Convert slider value to opacity (0.0 - 1.0)
+            for (const layer in basemaps) {
+                if (map.hasLayer(basemaps[layer])) {
+                    if (basemaps[layer] instanceof L.LayerGroup) {
+                        basemaps[layer].eachLayer(l => l.setOpacity(opacity));
+                    } else {
+                        basemaps[layer].setOpacity(opacity);
+                    }
+                }
+            }
         });
     </script>
 </body>
