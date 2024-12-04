@@ -4,7 +4,7 @@
 <head>
     <title>FAYTUKS Interactive Map</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
@@ -78,15 +78,18 @@
         #toolbar button {
             display: block;
             width: 100%;
-            padding: 8px;
+            padding: 12px;
+            /* Larger padding for touch */
             margin: 5px 0;
-            font-size: 1rem;
+            font-size: 1.2rem;
+            /* Increase font size */
             text-align: center;
             background-color: #f4f4f4;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
+
 
         #toolbar button:hover {
             background-color: #ddd;
@@ -125,6 +128,71 @@
         #slider-container input[type="range"] {
             width: 100%;
         }
+
+        <style>
+        /* Responsive styles for mobile devices */
+        @media (max-width: 768px) {
+            #map {
+                height: calc(100vh - 120px);
+                /* Adjust height for mobile */
+            }
+
+            #banner {
+                flex-direction: column;
+                /* Stack elements vertically */
+                height: auto;
+                padding: 10px;
+                text-align: center;
+            }
+
+            #banner img {
+                margin-bottom: 5px;
+                /* Add spacing for stacked layout */
+            }
+
+            #tools-container {
+                width: 90%;
+                left: 5%;
+                /* Center horizontally */
+                bottom: 10px;
+                /* Stick to the bottom */
+                top: unset;
+                /* Remove top position */
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                /* Space between elements */
+            }
+
+            #toolbar {
+                width: 100%;
+                /* Expand to full width on mobile */
+            }
+
+            #toolbar button {
+                font-size: 1.2rem;
+                /* Increase button size */
+                padding: 12px;
+                /* Larger touch targets */
+            }
+
+            #toggle-toolbar {
+                width: 100%;
+            }
+
+            #slider-container {
+                width: 90%;
+                /* Center slider */
+                left: 5%;
+                top: unset;
+                /* Remove top position */
+                bottom: 100px;
+                /* Place above tools */
+            }
+        }
+    </style>
+
     </style>
 </head>
 
@@ -177,6 +245,34 @@
         const database = firebase.database();
 
         const userMarkers = L.layerGroup().addTo(map);
+
+        function enableDefaultMapClick() {
+            map.off('click'); // Clear any existing click listeners
+            map.on('click', function (event) {
+                const lat = event.latlng.lat;
+                const lng = event.latlng.lng;
+
+                // Prompt for metadata
+                const link = prompt("Enter a URL (tweet/Telegram post):");
+                if (!link) return; // Exit if no link is entered
+
+                const username = prompt("Enter your username:");
+                if (!username) return; // Exit if no username is entered
+
+                const timestamp = Date.now(); // Get the current timestamp
+
+                // Write to Firebase
+                const newPin = database.ref('pins').push();
+                newPin.set({
+                    lat,
+                    lng,
+                    link,
+                    username,
+                    timestamp
+                });
+            });
+        }
+
 
         database.ref('pins').on('value', (snapshot) => {
             userMarkers.clearLayers();
@@ -272,6 +368,14 @@
         });
 
         // Create a custom icon for the measurement tool markers
+        const measurementIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Replace with your icon URL
+            iconSize: [20, 20], // Adjust icon size as needed
+            iconAnchor: [10, 10],
+            popupAnchor: [1, -10]
+        });
+
+
         const greenIcon = L.divIcon({
             html: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                      <circle cx="10" cy="10" r="8" fill="green" stroke="black" stroke-width="2"/>
@@ -332,34 +436,30 @@
 
                     // Calculate initial measurements
                     calculateAndDisplayMeasurements();
+
+                    // Re-enable default map click behavior
+                    enableDefaultMapClick();
                 }
             });
 
-            // Function to calculate and display measurements
             function calculateAndDisplayMeasurements() {
-                // Ensure both markers and the line are defined
                 if (!startMarker || !endMarker || !line) return;
 
                 const startLatLng = startMarker.getLatLng();
                 const endLatLng = endMarker.getLatLng();
 
-                // Update line geometry
                 line.setLatLngs([startLatLng, endLatLng]);
 
-                // Calculate distance
-                const distance = startLatLng.distanceTo(endLatLng) / 1000; // Convert to kilometers
+                const distance = startLatLng.distanceTo(endLatLng) / 1000;
 
-                // Determine the middle point of the line
                 const midLat = (startLatLng.lat + endLatLng.lat) / 2;
                 const midLng = (startLatLng.lng + endLatLng.lng) / 2;
                 const midPoint = L.latLng(midLat, midLng);
 
-                // Remove old label if it exists
                 if (line.label) {
                     map.removeLayer(line.label);
                 }
 
-                // Add new popup with distance
                 line.label = L.popup({
                     closeButton: false,
                     autoClose: false,
@@ -370,45 +470,21 @@
                     .openOn(map);
             }
 
-
-
-            // Function to calculate bearing between two points
-            function calculateBearing(start, end) {
-                const startLat = start.lat * (Math.PI / 180);
-                const startLng = start.lng * (Math.PI / 180);
-                const endLat = end.lat * (Math.PI / 180);
-                const endLng = end.lng * (Math.PI / 180);
-
-                const dLng = endLng - startLng;
-
-                const y = Math.sin(dLng) * Math.cos(endLat);
-                const x =
-                    Math.cos(startLat) * Math.sin(endLat) -
-                    Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
-
-                const bearing = Math.atan2(y, x) * (180 / Math.PI);
-                return (bearing + 360) % 360; // Normalize to 0–360 degrees
-            }
-
-
-            // Function to update measurements dynamically
             function updateMeasurements() {
                 calculateAndDisplayMeasurements();
             }
         });
 
+
         // Radius/Buffer Tool
         document.getElementById('radius-tool').addEventListener('click', () => {
-            // Clear existing click listeners to prevent conflicts
             map.off('click');
 
-            // Wait for user to click on the map
             map.once('click', (event) => {
-                const center = event.latlng; // Capture the clicked point
-                const radius = parseFloat(prompt("Enter radius in meters:")); // Prompt for radius
+                const center = event.latlng;
+                const radius = parseFloat(prompt("Enter radius in meters:"));
 
                 if (!isNaN(radius) && radius > 0) {
-                    // Add a circle with the specified radius
                     const buffer = L.circle(center, {
                         color: 'blue',
                         fillColor: '#3f88c5',
@@ -416,20 +492,23 @@
                         radius: radius,
                     }).addTo(map);
 
-                    // Bind a popup to display radius
                     buffer.bindPopup(`<strong>Buffer Radius:</strong> ${radius} meters`).openPopup();
 
-                    // Allow users to delete the buffer on right-click
                     buffer.on('contextmenu', () => {
                         if (confirm("Do you want to delete this buffer?")) {
                             map.removeLayer(buffer);
                         }
                     });
+
+                    // Re-enable default map click behavior
+                    enableDefaultMapClick();
                 } else {
                     alert("Invalid radius value. Please enter a positive number.");
+                    enableDefaultMapClick(); // Ensure re-enabling even on invalid input
                 }
             });
         });
+
 
         // Define basemap layers
         const osmBasemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -530,6 +609,14 @@
         map.on('baselayerchange', function (event) {
             activeLayer = event.layer; // Update the active layer
         });
+
+        // Ensure the map resizes properly when the viewport changes
+        window.addEventListener('resize', () => {
+            map.invalidateSize(); // Recalculate map dimensions
+        });
+
+        enableDefaultMapClick();
+
     </script>
 </body>
 
