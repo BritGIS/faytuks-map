@@ -230,9 +230,9 @@
 
         // Create a custom icon for the measurement tool markers
         const measurementIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Unique icon URL
-            iconSize: [25, 25], // Adjust size to differentiate from default marker
-            iconAnchor: [12, 12] // Center the icon
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+            iconSize: [25, 25],
+            iconAnchor: [12, 12]
         });
 
         document.getElementById('measure-tool').addEventListener('click', () => {
@@ -241,13 +241,13 @@
             let endMarker = null;
             let line = null;
 
-            // Clear all other map click event listeners to avoid conflicts
+            // Clear existing map click events to avoid conflicts
             map.off('click');
 
-            // Enable clicking on the map to select points
+            // Map click event for measurement tool
             map.on('click', (event) => {
                 if (!startMarker) {
-                    // Set the first marker
+                    // Place the first marker
                     startMarker = L.marker(event.latlng, {
                         icon: measurementIcon,
                         draggable: true
@@ -255,7 +255,7 @@
 
                     startMarker.on('drag', updateMeasurements);
                 } else if (!endMarker) {
-                    // Set the second marker
+                    // Place the second marker and draw the line
                     endMarker = L.marker(event.latlng, {
                         icon: measurementIcon,
                         draggable: true
@@ -274,17 +274,24 @@
 
             // Function to calculate and display distance and bearing
             function calculateAndDisplayMeasurements() {
-                if (!startMarker || !endMarker || !line) return;
+                if (!startMarker || !endMarker) return;
 
+                // Update line position
                 line.setLatLngs([startMarker.getLatLng(), endMarker.getLatLng()]);
 
-                const distance = startMarker.getLatLng().distanceTo(endMarker.getLatLng()) / 1000; // Convert to kilometers
+                // Calculate distance (in kilometers)
+                const distance = startMarker.getLatLng().distanceTo(endMarker.getLatLng()) / 1000;
+
+                // Calculate bearing
                 const bearing = L.GeometryUtil.bearing(startMarker.getLatLng(), endMarker.getLatLng());
 
+                // Find the midpoint for the label
                 const midPoint = L.GeometryUtil.interpolateOnLine(map, line, 0.5).latLng;
 
+                // Remove existing label if present
                 if (line.label) map.removeLayer(line.label);
 
+                // Add a label to the line midpoint
                 line.label = L.marker(midPoint, {
                     icon: L.divIcon({
                         className: 'measurement-label',
