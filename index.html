@@ -14,7 +14,6 @@
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.4.0/leaflet.geometryutil.min.js"></script>
 
-
     <style>
         #map {
             height: calc(100vh - 100px);
@@ -293,10 +292,13 @@
                 // Calculate distance and bearing
                 try {
                     const distance = startLatLng.distanceTo(endLatLng) / 1000; // Convert to kilometers
-                    const bearing = L.GeometryUtil.bearing(startLatLng, endLatLng);
+                    const bearing = calculateBearing(startLatLng, endLatLng); // Updated to custom function
 
                     // Determine the midpoint of the line
-                    const midPoint = L.GeometryUtil.interpolateOnLine(map, line, 0.5).latLng;
+                    const midPoint = L.GeometryUtil.interpolateOnLine(map, {
+                        type: "LineString",
+                        coordinates: line.getLatLngs().map(latlng => [latlng.lng, latlng.lat]),
+                    }, 0.5).latLng;
 
                     // Remove old label if it exists
                     if (line.label) map.removeLayer(line.label);
@@ -313,6 +315,26 @@
                     console.error("Error calculating measurements:", err);
                 }
             }
+
+
+            // Function to calculate bearing between two points
+            function calculateBearing(start, end) {
+                const startLat = start.lat * (Math.PI / 180);
+                const startLng = start.lng * (Math.PI / 180);
+                const endLat = end.lat * (Math.PI / 180);
+                const endLng = end.lng * (Math.PI / 180);
+
+                const dLng = endLng - startLng;
+
+                const y = Math.sin(dLng) * Math.cos(endLat);
+                const x =
+                    Math.cos(startLat) * Math.sin(endLat) -
+                    Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
+
+                const bearing = Math.atan2(y, x) * (180 / Math.PI);
+                return (bearing + 360) % 360; // Normalize to 0–360 degrees
+            }
+
 
             // Function to update measurements dynamically
             function updateMeasurements() {
