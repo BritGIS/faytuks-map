@@ -241,57 +241,66 @@
             let endMarker = null;
             let line = null;
 
-            // Clear existing map click events to avoid conflicts
+            // Clear previous click listeners to avoid conflicts
             map.off('click');
 
-            // Map click event for measurement tool
+            // Enable clicking to select points
             map.on('click', (event) => {
+                const { lat, lng } = event.latlng;
+
                 if (!startMarker) {
-                    // Place the first marker
-                    startMarker = L.marker(event.latlng, {
+                    // Set the first marker
+                    startMarker = L.marker([lat, lng], {
                         icon: measurementIcon,
                         draggable: true
                     }).addTo(measureLayer);
 
+                    // Add drag event to dynamically update measurements
                     startMarker.on('drag', updateMeasurements);
                 } else if (!endMarker) {
-                    // Place the second marker and draw the line
-                    endMarker = L.marker(event.latlng, {
+                    // Set the second marker
+                    endMarker = L.marker([lat, lng], {
                         icon: measurementIcon,
                         draggable: true
                     }).addTo(measureLayer);
 
+                    // Draw the line between the markers
                     line = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], {
-                        color: 'red'
+                        color: 'red',
+                        weight: 2
                     }).addTo(measureLayer);
 
+                    // Calculate and display measurements
                     calculateAndDisplayMeasurements();
 
-                    // Attach drag events for updates
+                    // Add drag events to dynamically update measurements
                     endMarker.on('drag', updateMeasurements);
                 }
             });
 
             // Function to calculate and display distance and bearing
             function calculateAndDisplayMeasurements() {
-                if (!startMarker || !endMarker) return;
+                if (!startMarker || !endMarker || !line) {
+                    console.error('Markers or line are not properly initialized.');
+                    return;
+                }
 
-                // Update line position
-                line.setLatLngs([startMarker.getLatLng(), endMarker.getLatLng()]);
+                const start = startMarker.getLatLng();
+                const end = endMarker.getLatLng();
 
-                // Calculate distance (in kilometers)
-                const distance = startMarker.getLatLng().distanceTo(endMarker.getLatLng()) / 1000;
+                // Calculate distance and bearing
+                const distance = start.distanceTo(end) / 1000; // Convert to kilometers
+                const bearing = L.GeometryUtil.bearing(start, end);
 
-                // Calculate bearing
-                const bearing = L.GeometryUtil.bearing(startMarker.getLatLng(), endMarker.getLatLng());
+                // Update the line coordinates
+                line.setLatLngs([start, end]);
 
-                // Find the midpoint for the label
+                // Add a label to the midpoint of the line
                 const midPoint = L.GeometryUtil.interpolateOnLine(map, line, 0.5).latLng;
 
-                // Remove existing label if present
+                // Remove the previous label if it exists
                 if (line.label) map.removeLayer(line.label);
 
-                // Add a label to the line midpoint
                 line.label = L.marker(midPoint, {
                     icon: L.divIcon({
                         className: 'measurement-label',
@@ -301,7 +310,7 @@
                 }).addTo(map);
             }
 
-            // Function to update measurements dynamically
+            // Function to update measurements dynamically when markers are dragged
             function updateMeasurements() {
                 calculateAndDisplayMeasurements();
             }
