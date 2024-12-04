@@ -248,33 +248,43 @@
             map.on('click', (event) => {
                 if (!startMarker) {
                     // Set the first marker
-                    startMarker = L.marker(event.latlng, { icon: measurementIcon, draggable: true }).addTo(measureLayer);
+                    startMarker = L.marker(event.latlng, {
+                        icon: measurementIcon,
+                        draggable: true
+                    }).addTo(measureLayer);
+
+                    startMarker.on('drag', updateMeasurements);
                 } else if (!endMarker) {
-                    // Set the second marker and draw the line
-                    endMarker = L.marker(event.latlng, { icon: measurementIcon, draggable: true }).addTo(measureLayer);
-                    line = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], { color: 'red' }).addTo(measureLayer);
+                    // Set the second marker
+                    endMarker = L.marker(event.latlng, {
+                        icon: measurementIcon,
+                        draggable: true
+                    }).addTo(measureLayer);
+
+                    line = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], {
+                        color: 'red'
+                    }).addTo(measureLayer);
 
                     calculateAndDisplayMeasurements();
 
-                    // Attach drag events for dynamic updates
-                    startMarker.on('drag', updateMeasurements);
+                    // Attach drag events for updates
                     endMarker.on('drag', updateMeasurements);
                 }
             });
 
-            // Function to calculate and display initial measurements
+            // Function to calculate and display distance and bearing
             function calculateAndDisplayMeasurements() {
-                if (line) line.setLatLngs([startMarker.getLatLng(), endMarker.getLatLng()]);
+                if (!startMarker || !endMarker || !line) return;
+
+                line.setLatLngs([startMarker.getLatLng(), endMarker.getLatLng()]);
 
                 const distance = startMarker.getLatLng().distanceTo(endMarker.getLatLng()) / 1000; // Convert to kilometers
                 const bearing = L.GeometryUtil.bearing(startMarker.getLatLng(), endMarker.getLatLng());
 
                 const midPoint = L.GeometryUtil.interpolateOnLine(map, line, 0.5).latLng;
 
-                // Remove existing label if any
                 if (line.label) map.removeLayer(line.label);
 
-                // Add a label at the midpoint
                 line.label = L.marker(midPoint, {
                     icon: L.divIcon({
                         className: 'measurement-label',
@@ -286,26 +296,9 @@
 
             // Function to update measurements dynamically
             function updateMeasurements() {
-                if (line) {
-                    line.setLatLngs([startMarker.getLatLng(), endMarker.getLatLng()]);
-                }
-
-                const updatedDistance = startMarker.getLatLng().distanceTo(endMarker.getLatLng()) / 1000; // Convert to kilometers
-                const updatedBearing = L.GeometryUtil.bearing(startMarker.getLatLng(), endMarker.getLatLng());
-
-                if (line.label) map.removeLayer(line.label);
-
-                const midPoint = L.GeometryUtil.interpolateOnLine(map, line, 0.5).latLng;
-                line.label = L.marker(midPoint, {
-                    icon: L.divIcon({
-                        className: 'measurement-label',
-                        html: `<strong>Updated Distance:</strong> ${updatedDistance.toFixed(2)} km<br><strong>Updated Bearing:</strong> ${updatedBearing.toFixed(2)}°`,
-                        iconSize: [150, 50]
-                    })
-                }).addTo(map);
+                calculateAndDisplayMeasurements();
             }
         });
-
 
         // Define basemap layers
         const osmBasemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
