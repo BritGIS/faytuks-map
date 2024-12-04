@@ -121,11 +121,27 @@
             .then(data => {
                 const customLayer = L.geoJSON(data, {
                     style: function (feature) {
+                        // Assign fill colors based on the "layer" property
+                        let fillColor;
+                        switch (feature.properties.layer) {
+                            case "HTS":
+                                fillColor = "#2d9035";
+                                break;
+                            case "SAA":
+                                fillColor = "#d90c0c";
+                                break;
+                            case "SDF":
+                                fillColor = "#fae950";
+                                break;
+                            default:
+                                fillColor = "#3388ff"; // Default color for unknown layers
+                        }
+
                         return {
-                            color: feature.properties.stroke || "#3388ff", // Line color
+                            color: feature.properties.stroke || "#000000", // Line color (default black)
                             weight: feature.properties["stroke-width"] || 2, // Line width
                             opacity: feature.properties["stroke-opacity"] || 1, // Line opacity
-                            fillColor: feature.properties.fill || "#3388ff", // Fill color
+                            fillColor: fillColor, // Fill color based on layer value
                             fillOpacity: feature.properties["fill-opacity"] || 0.5 // Fill opacity
                         };
                     },
@@ -136,7 +152,7 @@
                     }
                 });
 
-                overlays["Custom Data"] = customLayer;
+                overlays["Syrian Control"] = customLayer;
                 customLayer.addTo(map); // Add by default
                 L.control.layers(
                     {
