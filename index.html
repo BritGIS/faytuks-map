@@ -11,6 +11,9 @@
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.4.0/leaflet.geometryutil.min.js"></script>
+
 
     <style>
         #map {
@@ -51,6 +54,56 @@
             margin: 0;
         }
 
+        #tools-container {
+            position: absolute;
+            top: 130px;
+            /* Adjust to sit below the Transparency slider */
+            left: 50px;
+            width: 200px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        #toolbar {
+            margin-top: 10px;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            display: none;
+        }
+
+        #toolbar button {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            font-size: 1rem;
+            text-align: center;
+            background-color: #f4f4f4;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #toolbar button:hover {
+            background-color: #ddd;
+        }
+
+        #toggle-toolbar {
+            width: 100%;
+            background-color: #090b18;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
         #slider-container {
             position: absolute;
             top: 70px;
@@ -87,6 +140,14 @@
     <div id="slider-container">
         <label for="opacity-slider">Transparency: </label>
         <input type="range" id="opacity-slider" min="0" max="1" step="0.1" value="1">
+    </div>
+
+    <div id="tools-container">
+        <button id="toggle-toolbar">Tools</button>
+        <div id="toolbar" style="display: none;">
+            <h3>Analytical Tools</h3>
+            <button id="measure-tool">Distance & Bearing</button>
+        </div>
     </div>
 
     <!-- Map Section -->
@@ -154,6 +215,50 @@
             map.setView(latlng, 14); // Center the map at the location with a zoom level
             marker.bindPopup(`<strong>${e.geocode.name}</strong>`).openPopup(); // Add a popup with the location name
         }).addTo(map);
+
+        // Toolbar toggle functionality
+        const toolbar = document.getElementById('toolbar');
+        const toggleToolbarBtn = document.getElementById('toggle-toolbar');
+
+        toggleToolbarBtn.addEventListener('click', () => {
+            if (toolbar.style.display === 'none') {
+                toolbar.style.display = 'block'; // Show toolbar
+            } else {
+                toolbar.style.display = 'none'; // Hide toolbar
+            }
+        });
+
+        // Implement Distance & Bearing Measurement
+        document.getElementById('measure-tool').addEventListener('click', () => {
+            const measureLayer = L.layerGroup().addTo(map);
+            let startMarker, endMarker, line;
+
+            map.on('click', (event) => {
+                if (!startMarker) {
+                    startMarker = L.marker(event.latlng, { draggable: true }).addTo(measureLayer);
+                } else if (!endMarker) {
+                    endMarker = L.marker(event.latlng, { draggable: true }).addTo(measureLayer);
+                    line = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], { color: 'red' }).addTo(measureLayer);
+
+                    const distance = startMarker.getLatLng().distanceTo(endMarker.getLatLng()) / 1000; // Convert to km
+                    const bearing = L.GeometryUtil.bearing(startMarker.getLatLng(), endMarker.getLatLng());
+
+                    alert(`Distance: ${distance.toFixed(2)} km\nBearing: ${bearing.toFixed(2)}°`);
+
+                    // Dragging functionality for dynamic updates
+                    startMarker.on('drag', updateMeasurements);
+                    endMarker.on('drag', updateMeasurements);
+                }
+            });
+
+            function updateMeasurements() {
+                line.setLatLngs([startMarker.getLatLng(), endMarker.getLatLng()]);
+                const updatedDistance = startMarker.getLatLng().distanceTo(endMarker.getLatLng()) / 1000; // Convert to km
+                const updatedBearing = L.GeometryUtil.bearing(startMarker.getLatLng(), endMarker.getLatLng());
+                alert(`Updated Distance: ${updatedDistance.toFixed(2)} km\nUpdated Bearing: ${updatedBearing.toFixed(2)}°`);
+            }
+        });
+
 
         // Define basemap layers
         const osmBasemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
