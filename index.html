@@ -241,76 +241,80 @@
             let endMarker = null;
             let line = null;
 
-            // Clear previous click listeners to avoid conflicts
+            // Clear all existing click listeners
             map.off('click');
 
-            // Enable clicking to select points
+            // Enable clicking on the map to place points
             map.on('click', (event) => {
-                const { lat, lng } = event.latlng;
-
                 if (!startMarker) {
-                    // Set the first marker
-                    startMarker = L.marker([lat, lng], {
+                    // Place the first marker
+                    startMarker = L.marker(event.latlng, {
                         icon: measurementIcon,
-                        draggable: true
+                        draggable: true,
                     }).addTo(measureLayer);
 
-                    // Add drag event to dynamically update measurements
+                    // Add drag listener to update measurements
                     startMarker.on('drag', updateMeasurements);
                 } else if (!endMarker) {
-                    // Set the second marker
-                    endMarker = L.marker([lat, lng], {
+                    // Place the second marker
+                    endMarker = L.marker(event.latlng, {
                         icon: measurementIcon,
-                        draggable: true
+                        draggable: true,
                     }).addTo(measureLayer);
 
-                    // Draw the line between the markers
-                    line = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], {
-                        color: 'red',
-                        weight: 2
-                    }).addTo(measureLayer);
-
-                    // Calculate and display measurements
-                    calculateAndDisplayMeasurements();
-
-                    // Add drag events to dynamically update measurements
+                    // Add drag listener to update measurements
                     endMarker.on('drag', updateMeasurements);
+
+                    // Draw the line connecting markers
+                    line = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], { color: 'red' }).addTo(measureLayer);
+
+                    // Calculate initial measurements
+                    calculateAndDisplayMeasurements();
                 }
             });
 
-            // Function to calculate and display distance and bearing
+            // Function to calculate and display measurements
             function calculateAndDisplayMeasurements() {
-                if (!startMarker || !endMarker || !line) {
-                    console.error('Markers or line are not properly initialized.');
+                // Ensure both markers and the line are defined
+                if (!startMarker || !endMarker || !line) return;
+
+                const startLatLng = startMarker.getLatLng();
+                const endLatLng = endMarker.getLatLng();
+
+                // Validate LatLng objects
+                if (!startLatLng || !endLatLng) {
+                    console.error("Markers are not properly initialized.");
                     return;
                 }
 
-                const start = startMarker.getLatLng();
-                const end = endMarker.getLatLng();
+                // Update line geometry
+                line.setLatLngs([startLatLng, endLatLng]);
 
                 // Calculate distance and bearing
-                const distance = start.distanceTo(end) / 1000; // Convert to kilometers
-                const bearing = L.GeometryUtil.bearing(start, end);
+                try {
+                    const distance = startLatLng.distanceTo(endLatLng) / 1000; // Convert to kilometers
+                    const bearing = L.GeometryUtil.bearing(startLatLng, endLatLng);
 
-                // Update the line coordinates
-                line.setLatLngs([start, end]);
+                    // Determine the midpoint of the line
+                    const midPoint = L.GeometryUtil.interpolateOnLine(map, line, 0.5).latLng;
 
-                // Add a label to the midpoint of the line
-                const midPoint = L.GeometryUtil.interpolateOnLine(map, line, 0.5).latLng;
+                    // Remove old label if it exists
+                    if (line.label) map.removeLayer(line.label);
 
-                // Remove the previous label if it exists
-                if (line.label) map.removeLayer(line.label);
-
-                line.label = L.marker(midPoint, {
-                    icon: L.divIcon({
-                        className: 'measurement-label',
-                        html: `<strong>Distance:</strong> ${distance.toFixed(2)} km<br><strong>Bearing:</strong> ${bearing.toFixed(2)}°`,
-                        iconSize: [150, 50]
-                    })
-                }).addTo(map);
+                    // Add new label with measurements
+                    line.label = L.marker(midPoint, {
+                        icon: L.divIcon({
+                            className: 'measurement-label',
+                            html: `<strong>Distance:</strong> ${distance.toFixed(2)} km<br><strong>Bearing:</strong> ${bearing.toFixed(2)}°`,
+                            iconSize: [150, 50],
+                        }),
+                    }).addTo(map);
+                } catch (err) {
+                    console.error("Error calculating measurements:", err);
+                }
             }
 
-            // Function to update measurements dynamically when markers are dragged
+            // Function to update measurements dynamically
             function updateMeasurements() {
                 calculateAndDisplayMeasurements();
             }
