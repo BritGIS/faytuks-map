@@ -21,18 +21,19 @@
         <img src="/faytuks-map/icon.jpg" alt="Banner Icon" />
         <h1>FAYTUKS Interactive Map</h1>
     </div>
-    <div id="slider-container">
-        <label for="opacity-slider">Transparency: </label>
-        <input type="range" id="opacity-slider" min="0" max="1" step="0.1" value="1">
-    </div>
     <div id="tools-container">
         <button id="toggle-toolbar">Tools</button>
         <div id="toolbar" style="display: none;">
             <h3>Analytical Tools</h3>
+            <div id="slider-container">
+                <label for="opacity-slider">Transparency: </label>
+                <input type="range" id="opacity-slider" min="0" max="1" step="0.1" value="1">
+            </div>
             <button id="measure-tool">Distance & Bearing</button>
             <button id="radius-tool">Draw Buffer</button>
         </div>
     </div>
+
     <div id="map"></div>
     <script src="/faytuks-map/js/main.js"></script>
 </body>
