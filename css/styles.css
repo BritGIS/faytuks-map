@@ -1,1 +1,153 @@
+#map {
+    height: calc(100vh - 100px);
+    width: 100%;
+    margin: 0;
+}
 
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+#banner {
+    height: 60px;
+    width: 100%;
+    background-color: #090b18;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    padding-left: 10px;
+    gap: 10px;
+}
+
+#banner img {
+    height: 40px;
+    width: 40px;
+}
+
+#banner h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+#tools-container {
+    position: absolute;
+    top: 130px;
+    left: 50px;
+    width: 200px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    z-index: 1000;
+}
+
+#toolbar {
+    margin-top: 10px;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    display: none;
+}
+
+#toolbar button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 5px 0;
+    font-size: 1.2rem;
+    text-align: center;
+    background-color: #f4f4f4;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#toolbar button:hover {
+    background-color: #ddd;
+}
+
+#toggle-toolbar {
+    width: 100%;
+    background-color: #090b18;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#slider-container {
+    position: absolute;
+    top: 70px;
+    left: 50px;
+    width: 200px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    z-index: 1000;
+}
+
+#slider-container label {
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+#slider-container input[type="range"] {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    #map {
+        height: calc(100vh - 120px);
+    }
+
+    #banner {
+        flex-direction: column;
+        height: auto;
+        padding: 10px;
+        text-align: center;
+    }
+
+    #banner img {
+        margin-bottom: 5px;
+    }
+
+    #tools-container {
+        width: 90%;
+        left: 5%;
+        bottom: 10px;
+        top: unset;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #toolbar {
+        width: 100%;
+    }
+
+    #toolbar button {
+        font-size: 1.2rem;
+        padding: 12px;
+    }
+
+    #toggle-toolbar {
+        width: 100%;
+    }
+
+    #slider-container {
+        width: 90%;
+        left: 5%;
+        top: unset;
+        bottom: 100px;
+    }
+}
