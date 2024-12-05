@@ -34,17 +34,17 @@ body {
 
 #tools-container {
     position: absolute;
-    top: 60px;
-    /* Adjust this value to move it higher */
-    left: 50px;
-    width: 200px;
+    top: 200px;
+    /* Adjust to sit below search and layers controls */
+    left: 10px;
+    width: 220px;
     background-color: rgba(255, 255, 255, 0.8);
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     font-size: 14px;
-    z-index: 1000;
+    z-index: 999;
 }
 
 #toolbar {
@@ -89,7 +89,6 @@ body {
     /* Ensure it takes full width of the parent */
 }
 
-
 #slider-container label {
     margin-right: 10px;
     font-size: 12px;
@@ -97,6 +96,30 @@ body {
 
 #slider-container input[type="range"] {
     width: 100%;
+}
+
+/* Reposition search button to the left */
+.leaflet-control-geocoder {
+    left: 10px !important;
+    /* Position on the left */
+    right: auto !important;
+    /* Remove default right alignment */
+    top: 70px;
+    /* Adjust as needed to avoid overlapping */
+    z-index: 1000;
+    /* Ensure it sits on top of map elements */
+}
+
+/* Reposition layers control to the left */
+.leaflet-control-layers {
+    left: 10px;
+    /* Position on the left */
+    right: auto;
+    /* Remove default right alignment */
+    top: 120px;
+    /* Adjust to sit below search button */
+    z-index: 1000;
+    /* Ensure it is visible on top of map elements */
 }
 
 @media (max-width: 768px) {
@@ -144,5 +167,18 @@ body {
         left: 5%;
         top: unset;
         bottom: 100px;
+    }
+
+    /* Adjust search button position for mobile */
+    .leaflet-control-geocoder {
+        top: 50px;
+        /* Reposition for smaller screens */
+        left: 10px !important;
+    }
+
+    /* Adjust layers control position for mobile */
+    .leaflet-control-layers {
+        top: 100px;
+        left: 10px;
     }
 }
