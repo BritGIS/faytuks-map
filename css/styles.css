@@ -111,3 +111,52 @@ body {
 #slider-container input[type="range"] {
     width: 100%;
 }
+
+/* Points List Container */
+#points-list-container {
+    position: absolute;
+    top: 70px;
+    left: 10px;
+    width: 200px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    z-index: 1000;
+}
+
+#toggle-points-list {
+    width: 100%;
+    background-color: #090b18;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#points-list {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    /* Add scrolling for long lists */
+}
+
+#points-list button {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+    padding: 8px;
+    background-color: #f4f4f4;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: left;
+}
+
+#points-list button:hover {
+    background-color: #ddd;
+}
