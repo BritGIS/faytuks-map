@@ -5,22 +5,30 @@
     <title>FAYTUKS Interactive Map</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Leaflet Styles -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <!-- Custom Styles -->
     <link rel="stylesheet" href="/faytuks-map/css/styles.css" />
+    <!-- Leaflet Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <!-- Leaflet Geometry Util -->
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.4.0/leaflet.geometryutil.min.js"></script>
 </head>
 
 <body>
+    <!-- Banner Section -->
     <div id="banner">
         <img src="/faytuks-map/icon.jpg" alt="Banner Icon" />
         <h1>FAYTUKS Interactive Map</h1>
     </div>
+
+    <!-- Tools Container -->
     <div id="tools-container">
         <button id="toggle-toolbar">Tools</button>
         <div id="toolbar" style="display: none;">
@@ -34,7 +42,14 @@
         </div>
     </div>
 
+    <!-- Map Section -->
     <div id="map"></div>
+
+    <!-- Geocoder and Layers -->
+    <div class="leaflet-control-geocoder"></div>
+    <div class="leaflet-control-layers"></div>
+
+    <!-- Main JavaScript -->
     <script src="/faytuks-map/js/main.js"></script>
 </body>
 
