@@ -93,7 +93,61 @@ database.ref('pins').on('value', (snapshot) => {
     }
 });
 
+// After Firebase configuration
+const pointsListContainer = document.createElement('div'); // Create container for the points list
+pointsListContainer.id = 'points-list-container';
+pointsListContainer.style.display = 'none'; // Initially hidden
+document.body.appendChild(pointsListContainer); // Add it to the body
 
+const togglePointsListBtn = document.createElement('button'); // Create the button to toggle the list
+togglePointsListBtn.id = 'toggle-points-list';
+togglePointsListBtn.textContent = 'Show Points List';
+togglePointsListBtn.style.position = 'absolute';
+togglePointsListBtn.style.top = '10px';
+togglePointsListBtn.style.left = '10px';
+togglePointsListBtn.style.zIndex = '1000';
+document.body.appendChild(togglePointsListBtn); // Add the button to the body
+
+// Add the event listener for the button near other event listeners
+togglePointsListBtn.addEventListener('click', () => {
+    if (pointsListContainer.style.display === 'none') {
+        pointsListContainer.style.display = 'block';
+        togglePointsListBtn.textContent = 'Hide Points List';
+    } else {
+        pointsListContainer.style.display = 'none';
+        togglePointsListBtn.textContent = 'Show Points List';
+    }
+});
+
+// Function to update the points list
+function updatePointsList(pins) {
+    pointsListContainer.innerHTML = ''; // Clear existing list
+    const pointsArray = Object.entries(pins).sort((a, b) => b[1].timestamp - a[1].timestamp); // Sort by timestamp (most recent first)
+
+    pointsArray.forEach(([id, pin]) => {
+        const listItem = document.createElement('div');
+        listItem.className = 'point-list-item';
+        listItem.textContent = `${pin.username || 'Unknown'}: ${new Date(pin.timestamp).toLocaleString()}`;
+        listItem.style.cursor = 'pointer';
+
+        // Add click event to zoom to the point
+        listItem.addEventListener('click', () => {
+            map.setView([pin.lat, pin.lng], 14); // Zoom to the pin
+        });
+
+        pointsListContainer.appendChild(listItem); // Add the list item to the container
+    });
+}
+
+// Update the points list whenever Firebase data changes
+database.ref('pins').on('value', (snapshot) => {
+    const pins = snapshot.val();
+    if (pins) {
+        updatePointsList(pins); // Update the list
+    } else {
+        pointsListContainer.innerHTML = '<p>No points added yet.</p>';
+    }
+});
 
 map.on('click', function (event) {
     const lat = event.latlng.lat;
