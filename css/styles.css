@@ -41,11 +41,11 @@ body {
 }
 
 .leaflet-control-geocoder {
-    top: 30px;
+    top: 10px;
 }
 
 .leaflet-control-layers {
-    top: 90px;
+    top: 50px;
 }
 
 /* Adjust tools container to be under geocoder and layers */
