@@ -100,25 +100,27 @@ body {
 
 /* Reposition search button to the left */
 .leaflet-control-geocoder {
+    position: absolute !important;
+    top: 70px !important;
+    /* Adjust as needed to avoid overlapping */
     left: 10px !important;
     /* Position on the left */
     right: auto !important;
     /* Remove default right alignment */
-    top: 70px;
-    /* Adjust as needed to avoid overlapping */
-    z-index: 1000;
+    z-index: 1000 !important;
     /* Ensure it sits on top of map elements */
 }
 
 /* Reposition layers control to the left */
 .leaflet-control-layers {
-    left: 10px;
-    /* Position on the left */
-    right: auto;
-    /* Remove default right alignment */
-    top: 120px;
+    position: absolute !important;
+    top: 130px !important;
     /* Adjust to sit below search button */
-    z-index: 1000;
+    left: 10px !important;
+    /* Position on the left */
+    right: auto !important;
+    /* Remove default right alignment */
+    z-index: 1000 !important;
     /* Ensure it is visible on top of map elements */
 }
 
@@ -179,6 +181,6 @@ body {
     /* Adjust layers control position for mobile */
     .leaflet-control-layers {
         top: 100px;
-        left: 10px;
+        left: 10px !important;
     }
 }
